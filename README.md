@@ -67,7 +67,7 @@ Other tools do storage well. None do integrity.
 
 ```bash
 # Clone or install
-git clone https://github.com/your-org/ironclad-memory.git
+git clone https://github.com/jaicorn/ironclad-memory.git
 cd ironclad-memory
 
 # Make scripts executable

@@ -1,7 +1,7 @@
 ---
 name: ironclad-memory
 version: 1.1.0
-description: "Memory integrity system for AI agents. Enforces pre-compaction flush, evidence-based retrieval, commitment tracking, temperature-tiered decay, and verification gates."
+description: "Activate when: (1) context is compacting or session is ending — run memory flush, (2) about to answer a status question — run retrieval gate, (3) user asks for something trackable — capture commitment, (4) task completes — record with proof, (5) session starts — run daily review, (6) periodic check for stale items. Memory integrity system that prevents hallucinated status, lost commitments, and silent task rot."
 ---
 
 # Ironclad Memory
