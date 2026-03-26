@@ -338,6 +338,22 @@ scripts/test-ironclad.sh
 
 ---
 
+## Known Limitations
+
+- **Windows:** Native Windows is not supported. Use WSL (Windows Subsystem for Linux) — all scripts work there.
+- **No encryption at rest:** Memory files and ledger entries are stored as plaintext markdown and JSONL. If your agent handles sensitive data, encrypt the storage directory at the OS level (FileVault, LUKS, BitLocker).
+- **No semantic search:** Retrieval uses grep-based keyword matching. For semantic/vector search, wire up an adapter (see [Adapters](#adapters)) or pair with a tool like QMD.
+- **Single-agent only:** The ledger uses file locking for concurrency safety, but is designed for one agent instance. Multi-agent setups sharing a ledger are not tested.
+
+## Privacy
+
+Ironclad stores everything you flush as plaintext files. **Do not** store:
+- Passwords, API keys, tokens, or secrets
+- Full credit card or bank account numbers
+- Social security numbers or government IDs
+
+If your agent processes sensitive user data, configure `IRONCLAD_MEMORY_DIR` to point to an encrypted volume. The `ironclad purge` workflow (drop → gc) archives entries but does not truly delete them from the JSONL file — manual editing is required for complete removal.
+
 ## Why This Exists
 
 Every AI agent framework talks about memory. They mean storage. That's like saying a filing cabinet makes you organized.

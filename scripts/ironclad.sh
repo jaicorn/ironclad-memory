@@ -5,7 +5,7 @@ set -euo pipefail
 # Unified interface for memory flush, retrieval, commitment tracking,
 # escalation, and system validation.
 
-IRONCLAD_VERSION="1.0.0"
+IRONCLAD_VERSION="1.1.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 detect_workspace() {
