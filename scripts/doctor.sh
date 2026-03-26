@@ -225,7 +225,7 @@ echo ""
 # --- Scripts ---
 echo "Scripts:"
 
-scripts=(ironclad.sh flush.sh retrieve.sh ledger.sh capture.sh loops.sh escalate.sh doctor.sh)
+scripts=(ironclad.sh flush.sh retrieve.sh ledger.sh capture.sh loops.sh escalate.sh tier.sh doctor.sh)
 for script in "${scripts[@]}"; do
   script_path="$SCRIPT_DIR/$script"
   if [[ ! -f "$script_path" ]]; then

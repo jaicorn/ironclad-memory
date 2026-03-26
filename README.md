@@ -322,7 +322,7 @@ See [Integration Guide](references/integration-guide.md#adapter-development) for
 
 ```bash
 # Run all tests
-tests/test-ironclad.sh
+scripts/test-ironclad.sh
 
 # Tests cover:
 # - Flush: daily file creation, section appending, missing dirs
