@@ -1,8 +1,8 @@
 # Ironclad Memory
 
-**Memory your agent can't fake.**
+**Built to remember. Wired to verify.**
 
-Most AI memory systems store and retrieve data. That's table stakes. Ironclad ensures your agent is *honest* about what it knows — and catches it when it isn't.
+Most AI memory systems store and retrieve. Ironclad does the full loop — flush before context loss, retrieve with evidence, track every commitment, escalate what's rotting, and verify before claiming "done."
 
 ---
 
