@@ -338,6 +338,37 @@ LEDGER_PY
     printf -- '- No matches found in searched files.\n'
   fi
 
+  # --- FTS5 search layer ---
+  FTS_DB="${IRONCLAD_FTS_DB:-$WORKSPACE/data/fts5-index.db}"
+  FTS_SCRIPT="$SCRIPT_DIR/fts-search.sh"
+  if [[ -f "$FTS_DB" && -x "$FTS_SCRIPT" ]]; then
+    # Build a combined FTS query from all terms
+    fts_query=""
+    for term in "${terms[@]}"; do
+      [[ -n "$fts_query" ]] && fts_query="$fts_query OR "
+      fts_query="$fts_query$term"
+    done
+    fts_output="$("$FTS_SCRIPT" "$fts_query" --limit 5 2>/dev/null || true)"
+    if [[ -n "$fts_output" ]] && ! echo "$fts_output" | grep -qF "ERROR"; then
+      printf '\nFTS5 search results:\n%s\n' "$fts_output"
+      found_any=1
+    fi
+  fi
+
+  # --- LCM pattern search layer ---
+  LCM_SEARCH="$SCRIPT_DIR/lcm-search.sh"
+  if [[ -x "$LCM_SEARCH" ]]; then
+    # Use the first term as the LCM query (most specific)
+    lcm_query="${terms[0]}"
+    if [[ ${#terms[@]} -gt 1 ]]; then
+      lcm_query="${terms[*]}"
+    fi
+    lcm_output="$("$LCM_SEARCH" "$lcm_query" 2>/dev/null || true)"
+    if [[ -n "$lcm_output" ]]; then
+      printf '\nLCM pattern search:\n%s\n' "$lcm_output"
+    fi
+  fi
+
   # Optional LCM adapter
   if [[ "${IRONCLAD_LCM_ADAPTER:-0}" == "1" ]]; then
     LCM_ADAPTER="$SCRIPT_DIR/../adapters/lcm-adapter.sh"

@@ -5,7 +5,7 @@ set -euo pipefail
 # Unified interface for memory flush, retrieval, commitment tracking,
 # escalation, and system validation.
 
-IRONCLAD_VERSION="1.1.0"
+IRONCLAD_VERSION="2.0.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 detect_workspace() {
@@ -41,6 +41,9 @@ Memory commands:
   init                Create workspace dirs and print setup instructions
   flush               Append structured memory to daily file
   retrieve            Search memory and build evidence ledger
+  search "<query>"    FTS5 full-text search across indexed files
+  index               Build/rebuild FTS5 + memory index
+  patterns "<query>"  LCM pattern-based search for conversation history
 
 Commitment lifecycle:
   ask "<summary>"     Track a new request/commitment
@@ -522,6 +525,32 @@ cmd_tier() {
   "$SCRIPT_DIR/tier.sh" "$@"
 }
 
+cmd_search() {
+  if [[ $# -eq 0 ]]; then
+    echo "Error: search requires a query argument" >&2
+    echo "Usage: ironclad search \"<query>\" [--limit N] [--json]" >&2
+    exit 1
+  fi
+  "$SCRIPT_DIR/fts-search.sh" "$@"
+}
+
+cmd_index() {
+  echo "=== Rebuilding FTS5 index ==="
+  "$SCRIPT_DIR/build-fts-index.sh" "$@"
+  echo ""
+  echo "=== Rebuilding memory index ==="
+  "$SCRIPT_DIR/memory-index.sh" "$@"
+}
+
+cmd_patterns() {
+  if [[ $# -eq 0 ]]; then
+    echo "Error: patterns requires a query argument" >&2
+    echo "Usage: ironclad patterns \"<query>\"" >&2
+    exit 1
+  fi
+  "$SCRIPT_DIR/lcm-search.sh" "$@"
+}
+
 # Helper functions
 find_entry_id() {
   local summary="$1"
@@ -574,6 +603,12 @@ case "$verb" in
     cmd_escalate "$@" ;;
   tier)
     cmd_tier "$@" ;;
+  search)
+    cmd_search "$@" ;;
+  index)
+    cmd_index "$@" ;;
+  patterns)
+    cmd_patterns "$@" ;;
   doctor)
     cmd_doctor "$@" ;;
   version)

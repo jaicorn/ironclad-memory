@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "updated": "2026-03-28",
+  "description": "Pre-tested lcm_grep patterns for common topics. Used by scripts/lcm-search.sh and manual retrieval. Edit these patterns to match your workspace topics.",
+  "usage": "Copy this file and customize the patterns for your own workspace. Each topic has a description and an array of regex patterns that work well with lcm_grep.",
+  "patterns": {
+    "people": {
+      "description": "Team members, contacts, stakeholders",
+      "patterns": [
+        "team.*member|member.*team",
+        "contact.*info|phone|email",
+        "meeting.*with|met.*with"
+      ]
+    },
+    "projects": {
+      "description": "Active projects, milestones, releases",
+      "patterns": [
+        "project",
+        "milestone|deadline",
+        "release.*v[0-9]|v[0-9].*release",
+        "launch|ship|deploy"
+      ]
+    },
+    "deadlines": {
+      "description": "Due dates, time-sensitive items",
+      "patterns": [
+        "deadline|due.*date|due.*by",
+        "by.*Friday|by.*Monday|by.*end.of",
+        "urgent|ASAP|time.sensitive",
+        "overdue|late|missed"
+      ]
+    },
+    "systems": {
+      "description": "Infrastructure, services, tools",
+      "patterns": [
+        "server|database|API",
+        "deploy|deployment|production",
+        "monitor|alert|down|outage",
+        "config|setting|environment"
+      ]
+    },
+    "finances": {
+      "description": "Budget, expenses, payments",
+      "patterns": [
+        "budget|expense|cost",
+        "invoice|payment|billing",
+        "subscription|renewal",
+        "reimburs|receipt"
+      ]
+    },
+    "decisions": {
+      "description": "Decisions made, approvals, policies",
+      "patterns": [
+        "decided|decision|agreed",
+        "approved|rejected|denied",
+        "policy|rule|guideline",
+        "committed.*to|promise"
+      ]
+    },
+    "blockers": {
+      "description": "Blocked items, dependencies, waiting",
+      "patterns": [
+        "blocked|blocker|blocking",
+        "waiting.*on|depends.*on|dependency",
+        "stuck|stalled|can.t.*proceed",
+        "need.*from|requires.*approval"
+      ]
+    },
+    "communications": {
+      "description": "Emails, messages, calls, meetings",
+      "patterns": [
+        "email.*sent|sent.*email",
+        "called|phone.*call|voicemail",
+        "meeting|standup|sync",
+        "messag|chat|thread"
+      ]
+    },
+    "memory-system": {
+      "description": "Memory infrastructure, retrieval, LCM, search",
+      "patterns": [
+        "memory.*retriev|retriev.*memory",
+        "LCM|lcm_grep|lcm_expand",
+        "semantic.search|FTS|full.text",
+        "memory.*flush|flush.*memory",
+        "MEMORY.md|memory.index"
+      ]
+    }
+  }
+}

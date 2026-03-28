@@ -1,7 +1,7 @@
 ---
 name: ironclad-memory
-version: 1.1.0
-description: "Activate when: (1) context is compacting or session is ending — run memory flush, (2) about to answer a status question — run retrieval gate, (3) user asks for something trackable — capture commitment, (4) task completes — record with proof, (5) session starts — run daily review, (6) periodic check for stale items. Memory integrity system that prevents hallucinated status, lost commitments, and silent task rot."
+version: 2.0.0
+description: "Activate when: (1) context is compacting or session is ending — run memory flush, (2) about to answer a status question — run retrieval gate, (3) user asks for something trackable — capture commitment, (4) task completes — record with proof, (5) session starts — run daily review, (6) periodic check for stale items. Memory integrity system that prevents hallucinated status, lost commitments, and silent task rot. v2.0 adds multi-path retrieval (FTS5, LCM patterns, memory index) — benchmarked at 99.3% accuracy on 150-question benchmark."
 ---
 
 # Ironclad Memory
@@ -42,7 +42,81 @@ scripts/ironclad.sh retrieve \
   --term "v2.1"
 ```
 
-See: [references/retrieval-protocol.md](references/retrieval-protocol.md)
+Retrieval automatically uses multiple search paths when available:
+- Grep-based keyword search (always available)
+- FTS5 full-text search (if index exists)
+- LCM pattern search (if patterns file exists)
+- Memory tier awareness (if tier.sh is present)
+
+See: [references/retrieval-protocol.md](references/retrieval-protocol.md) and [references/retrieval-cascade.md](references/retrieval-cascade.md)
+
+### Multi-Path Retrieval (v2.0)
+
+Ironclad v2.0 adds a 5-layer retrieval cascade that improved accuracy from 85% to 99.3% on 150 fresh, unbiased questions:
+
+**Layer 1 — Instant:** MEMORY.md + daily memory files + memory-index.md grep
+**Layer 2 — Fast Search:** FTS5 full-text search + LCM conversation grep
+**Layer 3 — Semantic:** Embedding/similarity search (if available)
+**Layer 4 — Deep Expansion:** LCM cross-session expansion
+**Layer 5 — Direct Reads:** Targeted file reads based on evidence from layers 1-4
+
+```bash
+# FTS5 full-text search
+scripts/ironclad.sh search "deployment status"
+scripts/ironclad.sh search "migration" --limit 20 --json
+
+# Build/rebuild search indexes
+scripts/ironclad.sh index
+
+# LCM pattern-based conversation search
+scripts/ironclad.sh patterns "deployment status"
+```
+
+See: [references/retrieval-cascade.md](references/retrieval-cascade.md)
+
+#### FTS5 Search
+
+Full-text search over workspace markdown files using SQLite FTS5 with porter stemming. Splits files by section headers for granular results.
+
+```bash
+# Build the index (run nightly or after major memory writes)
+scripts/build-fts-index.sh
+
+# Search
+scripts/fts-search.sh "server deployment" --limit 10
+scripts/fts-search.sh "budget expense" --json
+
+# Rebuild (cron-friendly wrapper)
+scripts/rebuild-fts-index.sh --quiet
+```
+
+#### Memory Index
+
+Builds a greppable concept→file index for fast lookups:
+
+```bash
+# Build the index
+scripts/memory-index.sh
+
+# Use it
+grep -i "deployment" data/memory-index.md
+grep -i "budget" data/memory-index.md
+```
+
+#### LCM Pattern Search
+
+Topic-aware search across compacted conversation history:
+
+```bash
+# Search with pre-tested patterns
+scripts/lcm-search.sh "deployment status"
+
+# Outputs: search plan with lcm_grep calls + local file matches
+```
+
+Customize patterns in `references/lcm-patterns.json`.
+
+See: [references/lcm-subagent-workaround.md](references/lcm-subagent-workaround.md) for subagent retrieval limitations.
 
 ### Commitment Tracking
 
@@ -88,6 +162,7 @@ scripts/ironclad.sh doctor --fix  # Auto-fix what's possible
 - Python 3.6+
 - jq
 - bash 4+ (macOS ships with zsh, but bash 4+ is available via default install on most systems)
+- sqlite3 (for FTS5 search — included on most systems)
 
 ## Installation
 

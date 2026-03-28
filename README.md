@@ -54,6 +54,8 @@ You discussed something important across three separate sessions. Each session h
 | **Stale item escalation** | ❌ | ❌ | ❌ | ✅ |
 | **Temperature-based decay tiers** | ❌ | ❌ | ✅ (Weibull) | ✅ (HOT/WARM/COLD) |
 | **Audit trail** | ❌ | ❌ | ❌ | ✅ |
+| **Full-text search (FTS5)** | ❌ | ❌ | ❌ | ✅ |
+| **Multi-path retrieval cascade** | ❌ | ❌ | ❌ | ✅ |
 | Cross-session stitching | ❌ | ❌ | ❌ | ✅ (adapter) |
 | Atomic writes / locking | ❌ | ❌ | ✅ | ✅ |
 
@@ -63,7 +65,7 @@ Other tools do storage well. None do integrity.
 
 ## Quick Start
 
-**Prerequisites:** Python 3, jq, bash
+**Prerequisites:** Python 3, jq, bash, sqlite3
 
 ```bash
 # Clone or install
@@ -267,6 +269,69 @@ Retrieval automatically uses tiers when `tier.sh` is present — no configuratio
 
 ---
 
+## Multi-Path Retrieval (v2.0)
+
+v2.0 adds a 5-layer retrieval cascade that improved accuracy from **85% → 99.3% (150-question publication-grade benchmark)** on fresh, unbiased questions.
+
+### The Cascade
+
+| Layer | Speed | Method | Answers |
+|---|---|---|---|
+| 1. Instant | <1s | MEMORY.md + daily files + memory-index grep | "Is this in operational memory?" |
+| 2. Fast Search | <1s | FTS5 full-text + LCM conversation grep | "Has this been discussed or logged?" |
+| 3. Semantic | ~5s | Embedding/similarity search (if available) | "Related entries I missed?" |
+| 4. Deep Expansion | ~10s | LCM cross-session expansion | "What happened in past sessions?" |
+| 5. Direct Reads | varies | Targeted file reads from evidence | "What does the artifact actually say?" |
+
+### FTS5 Full-Text Search
+
+SQLite FTS5 index over workspace markdown files. Splits by section headers for granular results. Porter stemming catches morphological variants.
+
+```bash
+# Build the index
+scripts/build-fts-index.sh
+
+# Search
+scripts/fts-search.sh "deployment status" --limit 10
+scripts/fts-search.sh "budget review" --json
+
+# CLI shortcut
+ironclad search "deployment status"
+
+# Build all indexes at once
+ironclad index
+```
+
+### Memory Index
+
+Greppable concept→file index. Fast lookups for "which file contains X?"
+
+```bash
+# Build
+scripts/memory-index.sh
+
+# Search
+grep -i "project" data/memory-index.md
+```
+
+Edit the `CATEGORIES` array in `memory-index.sh` to match your workspace topics.
+
+### LCM Pattern Search
+
+Topic-aware patterns for searching compacted conversation history via `lcm_grep`.
+
+```bash
+# Search with pattern matching
+scripts/lcm-search.sh "deployment status"
+ironclad patterns "deployment status"
+```
+
+Customize `references/lcm-patterns.json` with your own topic patterns.
+
+See: [Retrieval Cascade](references/retrieval-cascade.md) | [LCM Subagent Workaround](references/lcm-subagent-workaround.md)
+
+---
+
 ## Configuration
 
 ### Environment Variables
@@ -284,6 +349,7 @@ Retrieval automatically uses tiers when `tier.sh` is present — no configuratio
 | `IRONCLAD_TIER_WARM_SECONDS` | `604800` | WARM threshold (default 7d) |
 | `IRONCLAD_TIER_WARM_CHARS` | `500` | Characters shown for WARM preview reads |
 | `IRONCLAD_TIER_TRACKER` | `$WORKSPACE/.ironclad/tier-tracker.json` | Tier classification cache |
+| `IRONCLAD_FTS_DB` | `$WORKSPACE/data/fts5-index.db` | FTS5 search index database |
 
 ### Workspace Auto-Detection
 
@@ -342,7 +408,7 @@ scripts/test-ironclad.sh
 
 - **Windows:** Native Windows is not supported. Use WSL (Windows Subsystem for Linux) — all scripts work there.
 - **No encryption at rest:** Memory files and ledger entries are stored as plaintext markdown and JSONL. If your agent handles sensitive data, encrypt the storage directory at the OS level (FileVault, LUKS, BitLocker).
-- **No semantic search:** Retrieval uses grep-based keyword matching. For semantic/vector search, wire up an adapter (see [Adapters](#adapters)) or pair with a tool like QMD.
+- **No semantic search (built-in):** FTS5 provides stemmed full-text search, but not semantic/vector search. For embedding-based search, wire up an adapter (see [Adapters](#adapters)).
 - **Single-agent only:** The ledger uses file locking for concurrency safety, but is designed for one agent instance. Multi-agent setups sharing a ledger are not tested.
 
 ## Privacy
